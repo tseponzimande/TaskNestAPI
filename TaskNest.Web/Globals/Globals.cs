@@ -1,0 +1,27 @@
+﻿global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.IdentityModel.Tokens;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.Security.Claims;
+global using System.Text;
+global using TaskNest.Domain.Entities;
+global using TaskNest.Domain.DTOs;
+global using Microsoft.EntityFrameworkCore;
+global using TaskNest.Infrastructure.Persistence;
+global using TaskNest.Web.Enums;
+global using TaskNest.Infrastructure.Extensions;
+global using TaskNest.Web.Interfaces;
+global using TaskNest.Web.Services;
+global using TaskNest.Web.IRepositories;
+global using TaskNest.Web.Repositories;
+global using AutoMapper;
+global using TaskNest.Web.DTOs;
+global using System.Net;
+global using System.Net.Mail;
+global using TaskNest.Web.Mapping;
+global using Serilog;
+global using Serilog.Exceptions;
+global using TaskNest.Web.Extensions;
+global using TaskNest.Web.Middleware;
+ 
