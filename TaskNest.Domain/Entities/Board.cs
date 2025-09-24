@@ -13,5 +13,9 @@
         public string? ApplicationUserId { get; set; }
         public ApplicationUser? User { get; set; }
 
+        // Navigation property for BoardUser
+        public ICollection<BoardUser> BoardUsers { get; set; } = new List<BoardUser>();
+
+
     }
 }

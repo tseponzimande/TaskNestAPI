@@ -1,18 +1,15 @@
 ﻿using AutoMapper;
-using TaskNest.Domain.Entities;
-using TaskNest.Web.DTOs;
 
-namespace TaskNest.Web.Mapping
+namespace TaskNest.Application.Mapping
 {
-    public class MappingProfile: Profile
+    public class MappingProfile : Profile
     {
         public MappingProfile()
         {
             CreateMap<Board, BoardDto>().ReverseMap();
+            CreateMap<BoardColumn, BoardColumnDto>().ReverseMap(); // names now match
             CreateMap<TaskItem, TaskItemDto>().ReverseMap();
-            CreateMap<BoardColumn, BoardColumnDto>().ReverseMap();
-
-
+            // other mappings...
         }
     }
 }

@@ -17,6 +17,8 @@
             services.AddScoped<ITaskItemService, TaskItemService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IBoardUserService, BoardUserService>();
+
 
             // Register Generic Repository
             services.AddScoped(typeof(IRepositories.IGenericRepository<>), typeof(Repositories.GenericRepository<>));

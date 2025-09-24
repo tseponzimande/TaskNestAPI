@@ -8,50 +8,109 @@ namespace TaskNest.Web.Services
 
         public async Task<IdentityResult> RegisterAsync(RegisterDto model)
         {
-            var user = new ApplicationUser
+            try
             {
-                UserName = model.Email,
-                Email = model.Email
-            };
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email
+                };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, REnum.User.ToString());
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, REnum.User.ToString());
+                }
+
+                return result;
             }
-
-            return result;
+            catch (Exception ex)
+            {
+                var error = new IdentityError
+                {
+                    Code = "Exception",
+                    Description = ex.Message
+                };
+                return IdentityResult.Failed(error);
+            }
         }
 
         public async Task<string?> LoginAsync(LoginDto model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+                {
+                    return null;
+                }
+
+                var roles = await _userManager.GetRolesAsync(user);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName!),
+                    new Claim(ClaimTypes.Email, user.Email!), // Include the email claim
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
+
+                claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: _configuration["JWT:ValidIssuer"],
+                    audience: _configuration["JWT:ValidAudience"],
+                    expires: DateTime.UtcNow.AddDays(int.Parse(_configuration["JWT:ExpirationInDays"]!)),
+                    claims: claims,
+                    signingCredentials: creds
+                );
+
+                return new JwtSecurityTokenHandler().WriteToken(token);
+            }
+            catch
             {
                 return null;
             }
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:ValidIssuer"],
-                audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.UtcNow.AddDays(int.Parse(_configuration["JWT:ExpirationInDays"]!)),
-                claims: claims,
-                signingCredentials: creds
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+
+        //public async Task<string?> LoginAsync(LoginDto model)
+        //{
+        //    try
+        //    {
+        //        var user = await _userManager.FindByEmailAsync(model.Email);
+        //        if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+        //        {
+        //            return null;
+        //        }
+
+        //        var roles = await _userManager.GetRolesAsync(user);
+        //        var claims = new List<Claim>
+        //    {
+        //        new Claim(ClaimTypes.Name, user.UserName!),
+        //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        //    };
+
+        //        claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+        //        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
+        //        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        //        var token = new JwtSecurityToken(
+        //            issuer: _configuration["JWT:ValidIssuer"],
+        //            audience: _configuration["JWT:ValidAudience"],
+        //            expires: DateTime.UtcNow.AddDays(int.Parse(_configuration["JWT:ExpirationInDays"]!)),
+        //            claims: claims,
+        //            signingCredentials: creds
+        //        );
+
+        //        return new JwtSecurityTokenHandler().WriteToken(token);
+        //    }
+        //    catch
+        //    {
+        //        return null;
+        //    }
+        //}
     }
 }

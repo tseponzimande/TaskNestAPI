@@ -1,5 +1,7 @@
 ﻿namespace TaskNest.Web.Controllers
 {
+    //[Authorize]
+    [AllowAnonymous]
     [ApiController]
     [Route("api/[controller]")]
     public class BoardColumnsController(IBoardColumnService columnService, IMapper mapper) : ControllerBase
@@ -7,6 +9,11 @@
         private readonly IBoardColumnService _columnService = columnService;
         private readonly IMapper _mapper = mapper;
 
+
+        /// <summary>
+        /// Get columns by board ID
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("byBoard/{boardId}")]
         public async Task<ActionResult<IEnumerable<BoardColumnDto>>> GetColumns(Guid boardId)
         {
@@ -15,6 +22,10 @@
             return Ok(columnsDto);
         }
 
+        /// <summary>
+        /// Get a specific column by ID
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<BoardColumnDto>> GetColumn(Guid id)
         {
@@ -28,6 +39,11 @@
             return Ok(columnDto);
         }
 
+        /// <summary>
+        /// Create a new column
+        /// </summary>
+        /// <returns></returns>
+
         [HttpPost]
         public async Task<ActionResult<BoardColumnDto>> Create(BoardColumnDto columnDto)
         {
@@ -39,6 +55,11 @@
 
             return CreatedAtAction(nameof(GetColumn), new { id = createdDto.Id }, createdDto);
         }
+
+        /// <summary>
+        /// Update an existing column
+        /// </summary>
+        /// <returns></returns>
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, BoardColumnDto columnDto)
@@ -58,6 +79,11 @@
 
             return NoContent();
         }
+
+        /// <summary>
+        /// Delete a column
+        /// </summary>
+        /// <returns></returns>
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)

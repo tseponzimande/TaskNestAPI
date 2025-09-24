@@ -20,19 +20,40 @@
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            try
+            {
+                return await _dbSet.ToListAsync();
+            }
+            catch
+            {
+                return Enumerable.Empty<TEntity>();
+            }
         }
 
         public virtual async Task<TEntity?> GetByIdAsync(Guid id)
         {
-            return await _dbSet.FindAsync(id);
+            try
+            {
+                return await _dbSet.FindAsync(id);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         public virtual async Task<TEntity> CreateAsync(TEntity entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                await _context.SaveChangesAsync();
+                return entity;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error creating entity", ex);
+            }
         }
 
         public virtual async Task<bool> UpdateAsync(TEntity entity)

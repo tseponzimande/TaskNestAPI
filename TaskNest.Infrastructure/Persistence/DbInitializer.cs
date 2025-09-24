@@ -1,15 +1,10 @@
-﻿using TaskNest.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace TaskNest.Infrastructure.Persistence
+﻿namespace TaskNest.Infrastructure.Persistence
 {
     public static class DbInitializer
     {
-        public static void Seed(AppDbContext context)
+        public static async Task SeedAsync(AppDbContext context)
         {
-            if (!context.Boards.Any())
+            if (!await context.Boards.AnyAsync())
             {
                 var board = new Board
                 {
@@ -36,9 +31,8 @@ namespace TaskNest.Infrastructure.Persistence
                         }
                     }
                 };
-
-                context.Boards.Add(board);
-                context.SaveChanges();
+                await context.Boards.AddAsync(board);
+                await context.SaveChangesAsync();
 
                 var columns = new List<BoardColumn>
                 {
@@ -46,23 +40,20 @@ namespace TaskNest.Infrastructure.Persistence
                     new BoardColumn { Id = Guid.NewGuid(), Name = "In Progress", Order = 2, BoardId = board.Id },
                     new BoardColumn { Id = Guid.NewGuid(), Name = "Done", Order = 3, BoardId = board.Id }
                 };
-
-                context.BoardColumns.AddRange(columns);
-                context.SaveChanges();
+                await context.BoardColumns.AddRangeAsync(columns);
+                await context.SaveChangesAsync();
             }
-            else if (!context.BoardColumns.Any())
+            else if (!await context.BoardColumns.AnyAsync())
             {
-                var existingBoard = context.Boards.First();
-
+                var existingBoard = await context.Boards.FirstAsync();
                 var columns = new List<BoardColumn>
                 {
                     new BoardColumn { Id = Guid.NewGuid(), Name = "To Do", Order = 1, BoardId = existingBoard.Id },
                     new BoardColumn { Id = Guid.NewGuid(), Name = "In Progress", Order = 2, BoardId = existingBoard.Id },
                     new BoardColumn { Id = Guid.NewGuid(), Name = "Done", Order = 3, BoardId = existingBoard.Id }
                 };
-
-                context.BoardColumns.AddRange(columns);
-                context.SaveChanges();
+                await context.BoardColumns.AddRangeAsync(columns);
+                await context.SaveChangesAsync();
             }
         }
     }

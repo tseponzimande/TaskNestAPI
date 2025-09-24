@@ -12,8 +12,8 @@ using TaskNest.Infrastructure.Persistence;
 namespace TaskNest.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250906174607_AddTaskPositionToTaskItem")]
-    partial class AddTaskPositionToTaskItem
+    [Migration("20250920171429_AddBoardUser")]
+    partial class AddBoardUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -234,12 +234,13 @@ namespace TaskNest.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -272,6 +273,31 @@ namespace TaskNest.Infrastructure.Migrations
                     b.ToTable("BoardColumns");
                 });
 
+            modelBuilder.Entity("TaskNest.Domain.Entities.BoardUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("BoardId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("BoardId");
+
+                    b.ToTable("BoardUsers");
+                });
+
             modelBuilder.Entity("TaskNest.Domain.Entities.TaskItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -288,15 +314,19 @@ namespace TaskNest.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.HasKey("Id");
 
@@ -304,7 +334,7 @@ namespace TaskNest.Infrastructure.Migrations
 
                     b.HasIndex("ColumnId");
 
-                    b.ToTable("TaskItems");
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -360,9 +390,12 @@ namespace TaskNest.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskNest.Domain.Entities.Board", b =>
                 {
-                    b.HasOne("TaskNest.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("TaskNest.Domain.Entities.ApplicationUser", "User")
                         .WithMany("Boards")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskNest.Domain.Entities.BoardColumn", b =>
@@ -376,18 +409,37 @@ namespace TaskNest.Infrastructure.Migrations
                     b.Navigation("Board");
                 });
 
+            modelBuilder.Entity("TaskNest.Domain.Entities.BoardUser", b =>
+                {
+                    b.HasOne("TaskNest.Domain.Entities.ApplicationUser", "ApplicationUser")
+                        .WithMany("BoardUsers")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TaskNest.Domain.Entities.Board", "Board")
+                        .WithMany("BoardUsers")
+                        .HasForeignKey("BoardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("Board");
+                });
+
             modelBuilder.Entity("TaskNest.Domain.Entities.TaskItem", b =>
                 {
                     b.HasOne("TaskNest.Domain.Entities.Board", "Board")
                         .WithMany("Tasks")
                         .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TaskNest.Domain.Entities.BoardColumn", "Column")
                         .WithMany("Tasks")
                         .HasForeignKey("ColumnId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Board");
 
@@ -396,12 +448,16 @@ namespace TaskNest.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskNest.Domain.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("BoardUsers");
+
                     b.Navigation("Boards");
                 });
 
             modelBuilder.Entity("TaskNest.Domain.Entities.Board", b =>
                 {
                     b.Navigation("BoardColumns");
+
+                    b.Navigation("BoardUsers");
 
                     b.Navigation("Tasks");
                 });

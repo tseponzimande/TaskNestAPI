@@ -19,9 +19,9 @@ global using AutoMapper;
 global using TaskNest.Web.DTOs;
 global using System.Net;
 global using System.Net.Mail;
-global using TaskNest.Web.Mapping;
 global using Serilog;
 global using Serilog.Exceptions;
 global using TaskNest.Web.Extensions;
 global using TaskNest.Web.Middleware;
- 
+global using Microsoft.AspNetCore.Authorization;
+global using TaskNest.Application.Mapping;

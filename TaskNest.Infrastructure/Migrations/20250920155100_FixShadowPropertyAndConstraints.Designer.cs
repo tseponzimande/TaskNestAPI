@@ -12,8 +12,8 @@ using TaskNest.Infrastructure.Persistence;
 namespace TaskNest.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250913195731_AddPositionToEntities")]
-    partial class AddPositionToEntities
+    [Migration("20250920155100_FixShadowPropertyAndConstraints")]
+    partial class FixShadowPropertyAndConstraints
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -234,12 +234,13 @@ namespace TaskNest.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -288,7 +289,8 @@ namespace TaskNest.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
@@ -298,8 +300,8 @@ namespace TaskNest.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.HasKey("Id");
 
@@ -307,7 +309,7 @@ namespace TaskNest.Infrastructure.Migrations
 
                     b.HasIndex("ColumnId");
 
-                    b.ToTable("TaskItems");
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -363,9 +365,12 @@ namespace TaskNest.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskNest.Domain.Entities.Board", b =>
                 {
-                    b.HasOne("TaskNest.Domain.Entities.ApplicationUser", null)
+                    b.HasOne("TaskNest.Domain.Entities.ApplicationUser", "User")
                         .WithMany("Boards")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TaskNest.Domain.Entities.BoardColumn", b =>
@@ -384,13 +389,13 @@ namespace TaskNest.Infrastructure.Migrations
                     b.HasOne("TaskNest.Domain.Entities.Board", "Board")
                         .WithMany("Tasks")
                         .HasForeignKey("BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TaskNest.Domain.Entities.BoardColumn", "Column")
                         .WithMany("Tasks")
                         .HasForeignKey("ColumnId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Board");
 
